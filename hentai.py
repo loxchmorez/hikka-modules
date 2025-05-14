@@ -1,4 +1,4 @@
-# meta developer: your_username
+# meta developer: rain
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -43,11 +43,12 @@ class HentaiOnlyNekosMod(loader.Module):
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     "https://api.nekosapi.com/v4/images/random",
-                    params={"rating": "explicit", "tags": tag},
+                    params={"rating": "explicit", "tags": tag, "limit": 1},
                 ) as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        return data.get("url")
-        except Exception:
-            pass
+                        if isinstance(data, list) and data:
+                            return data[0].get("url")
+        except Exception as e:
+            print(f"[nekosapi error] {e}")
         return None
