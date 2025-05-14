@@ -52,7 +52,7 @@ class DemotivatorMod(loader.Module):
 
         reply = await message.get_reply_message()
         if not reply or not reply.photo:
-            await message.edit("❗ **Ответь на изображение**", parse_mode="md")
+            await message.edit("❗️ **Ответь на изображение**", parse_mode="md")
             return
 
         img = await reply.download_media(bytes)
@@ -61,41 +61,42 @@ class DemotivatorMod(loader.Module):
         image = ImageOps.expand(image, border=4, fill="white")
 
         padding_top = 60
-        padding_bottom = 120
         padding_sides = 60
         text_spacing = 10
         width, height = image.size
         total_width = width + 2 * padding_sides
-        total_height = height + padding_top + padding_bottom
+
+        font_path = get_asset("Times New Roman.ttf")
+        if font_path == "":
+            await message.edit("❌ **Ошибка загрузки шрифта**", parse_mode="md")
+            return
+
+        font_title = ImageFont.truetype(font_path, 40)
+        font_sub = ImageFont.truetype(font_path, 24)
+
+        dummy_draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+        title_h = dummy_draw.textbbox((0, 0), title, font=font_title)[3] if title else 0
+        subtitle_h = dummy_draw.textbbox((0, 0), subtitle, font=font_sub)[3] if subtitle else 0
+        total_text_height = title_h + subtitle_h + (text_spacing * (1 if subtitle else 0))
+
+        total_height = height + padding_top + total_text_height + 40
 
         result = Image.new("RGB", (total_width, total_height), "black")
         result.paste(image, (padding_sides, padding_top))
 
-        font: str = get_asset("Times New Roman.ttf")
-        if font == "":
-            await message.edit("❌ **Ошибка загрузки ассета!**", parse_mode="md")
-            return
-        font_title = ImageFont.truetype(font, 40)
-        font_sub = ImageFont.truetype(font, 24)
-
         draw = ImageDraw.Draw(result)
-
-        """
-        def draw_centered(text, y, font):
-            bbox = draw.textbbox((0, 0), text, font=font)
-            w = bbox[2] - bbox[0]
-            draw.text(((width - w) / 2, y), text, font=font, fill="white"
-        """
+        current_y = padding_top + height + text_spacing
 
         if title:
             bbox = draw.textbbox((0, 0), title, font=font_title)
             w = bbox[2] - bbox[0]
-            draw.text(((total_width - w) / 2, height + padding_top + text_spacing), title, font=font_title, fill="white")
+            draw.text(((total_width - w) / 2, current_y), title, font=font_title, fill="white")
+            current_y += title_h + text_spacing
 
         if subtitle:
             bbox = draw.textbbox((0, 0), subtitle, font=font_sub)
             w = bbox[2] - bbox[0]
-            draw.text(((total_width - w) / 2, height + padding_top + 40 + text_spacing), subtitle, font=font_sub, fill="white")
+            draw.text(((total_width - w) / 2, current_y), subtitle, font=font_sub, fill="white")
 
         output = io.BytesIO()
         output.name = "demotivator.jpg"
