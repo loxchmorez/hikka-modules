@@ -1,5 +1,4 @@
 # meta developer: rain
-# requires: hmtai asyncio aiohttp
 
 from .. import loader, utils
 from telethon.tl.types import Message
