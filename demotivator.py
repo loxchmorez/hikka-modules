@@ -32,15 +32,16 @@ def get_asset(asset_name: str) -> str:
     return ""
 
 class DemotivatorMod(loader.Module):
-    strings = {"name": "Demotivator"}
-
-    strings["help"] = (
-        ".demotivator [--square/-s] [текст | подзаголовок]\n\n"
-        "**Создаёт демотиватор из картинки в ответе.**\n"
-        "- `|` разделяет заголовок и подзаголовок\n"
-        "- `--square` или `-s` — привести фото к квадрату\n\n"
-        "__Пример:__ `.demotivator Когда учишься | А потом вступительный --square`"
-    )
+    strings = {
+        "name": "Demotivator",
+        "help": (
+            ".demotivator [--square/-s] [текст | подзаголовок]\n\n"
+            "**Создаёт демотиватор из картинки в ответе.**\n"
+            "- `|` разделяет заголовок и подзаголовок\n"
+            "- `--square` или `-s` — привести фото к квадрату\n\n"
+            "__Пример:__ `.demotivator Когда учишься | А потом вступительный --square`"
+        )
+    }
 
     async def demotivatorcmd(self, message):
         args_raw = utils.get_args_raw(message)
@@ -62,14 +63,14 @@ class DemotivatorMod(loader.Module):
         img = await reply.download_media(bytes)
         image = Image.open(io.BytesIO(img)).convert("RGB")
 
-        # === Новое: обрезка до квадрата (по меньшей стороне)
         if use_square:
-            min_side = min(image.width, image.height)
-            left = (image.width - min_side) // 2
-            top = (image.height - min_side) // 2
-            image = image.crop((left, top, left + min_side, top + min_side))
+            if image.height > image.width:
+                ratio = image.width / image.height
+                image = image.resize((image.width, int(image.height * ratio)))
+            elif image.width > image.height:
+                ratio = image.height / image.width
+                image = image.resize((int(image.width * ratio), image.height))
 
-        # === Обводка
         image = ImageOps.expand(image, border=6, fill="black")
         image = ImageOps.expand(image, border=2, fill="white")
 
