@@ -2,6 +2,7 @@
 
 from .. import loader, utils
 from telethon.tl.types import Message
+from telethon import Button
 import aiohttp
 import asyncio
 import random
@@ -27,19 +28,23 @@ class HentaiGenMod(loader.Module):
             await message.edit(f"Не удалось найти изображение по тегу {tag}.")
             return
 
-        btn = [[{"text": f"🔁 Обновить ({source})", "callback": self._hentai_cb, "args": (tag,)}]]
-
+        btn = [[Button.inline(f"🔁 Обновить ({source})", data=f"hentai|{tag}")]]
         await message.respond(f"Тег: `{tag}`\nИсточник: `{source}`", file=img_url, buttons=btn)
         await message.delete()
 
-    async def _hentai_cb(self, call, tag):
+    async def inline__hentai(self, call, args):
+        if not args:
+            await call.answer("Ошибка в аргументах кнопки.", alert=True)
+            return
+
+        tag = args[0]
         img_url, source = await self.get_random_image(tag)
 
         if not img_url:
-            await call.answer("Ошибка при загрузке.")
+            await call.answer("Ошибка при загрузке.", alert=True)
             return
 
-        btn = [[{"text": f"🔁 Обновить ({source})", "callback": self._hentai_cb, "args": (tag,)}]]
+        btn = [[Button.inline(f"🔁 Обновить ({source})", data=f"hentai|{tag}")]]
         await call.edit(f"Тег: `{tag}`\nИсточник: `{source}`", file=img_url, buttons=btn)
 
     async def get_random_image(self, tag):
