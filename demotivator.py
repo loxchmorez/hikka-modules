@@ -9,44 +9,48 @@ import requests, io, os
 def get_assets_dir() -> str:
     base_dir: str = os.getcwd()
     assets_dir: str = os.path.join(base_dir, "rain-assets")
-
-    if not os.path.exists(assets_dir):
-        os.makedirs(assets_dir)
-    
+    os.makedirs(assets_dir, exist_ok=True)
     return assets_dir
 
 def dl_asset(asset_name: str) -> bool:
-    assets_dir: str = get_assets_dir()
-    asset_path: str = os.path.join(assets_dir, asset_name)
+    asset_path: str = os.path.join(get_assets_dir(), asset_name)
     url = "https://github.com/loxchmorez/hikka-modules/raw/refs/heads/main/assets/" + asset_name.replace("/", "")
-
     response = requests.get(url, stream=True)
     if not response.ok:
         return False
-    
     with open(asset_path, 'wb') as file:
         for chunk in response.iter_content(chunk_size=8192):
             file.write(chunk)
-    
     return True
 
 def get_asset(asset_name: str) -> str:
     asset_path: str = os.path.join(get_assets_dir(), asset_name)
     if os.path.isfile(asset_path):
         return asset_path
-    else:
-        success: bool = dl_asset(asset_name)
-        if os.path.isfile(asset_path):
-            return asset_path
-
+    if dl_asset(asset_name):
+        return asset_path
     return ""
 
 class DemotivatorMod(loader.Module):
     strings = {"name": "Demotivator"}
 
+    strings["help"] = (
+        ".demotivator [--square/-s] [текст | подзаголовок]\n\n"
+        "**Создаёт демотиватор из картинки в ответе.**\n"
+        "- `|` разделяет заголовок и подзаголовок\n"
+        "- `--square` или `-s` — привести фото к квадрату\n\n"
+        "__Пример:__ `.demotivator Когда учишься | А потом вступительный --square`"
+    )
+
     async def demotivatorcmd(self, message):
-        args = utils.get_args_raw(message)
-        parts = [p.strip() for p in args.split("|")] if args else []
+        args_raw = utils.get_args_raw(message)
+
+        use_square = "--square" in args_raw or "-s" in args_raw
+        args_cleaned = (
+            args_raw.replace("--square", "").replace("-s", "").strip()
+        )
+
+        parts = [p.strip() for p in args_cleaned.split("|")] if args_cleaned else []
         title = parts[0] if parts else "Демотиватор"
         subtitle = parts[1] if len(parts) > 1 else ""
 
@@ -58,6 +62,14 @@ class DemotivatorMod(loader.Module):
         img = await reply.download_media(bytes)
         image = Image.open(io.BytesIO(img)).convert("RGB")
 
+        # === Новое: обрезка до квадрата (по меньшей стороне)
+        if use_square:
+            min_side = min(image.width, image.height)
+            left = (image.width - min_side) // 2
+            top = (image.height - min_side) // 2
+            image = image.crop((left, top, left + min_side, top + min_side))
+
+        # === Обводка
         image = ImageOps.expand(image, border=6, fill="black")
         image = ImageOps.expand(image, border=2, fill="white")
 
@@ -78,7 +90,7 @@ class DemotivatorMod(loader.Module):
         dummy_draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
         title_h = dummy_draw.textbbox((0, 0), title, font=font_title)[3] if title else 0
         subtitle_h = dummy_draw.textbbox((0, 0), subtitle, font=font_sub)[3] if subtitle else 0
-        total_text_height = title_h + subtitle_h + (text_spacing * (1 if subtitle else 0))
+        total_text_height = title_h + subtitle_h + (text_spacing if subtitle else 0)
 
         total_height = height + padding_top + total_text_height + 40
 
@@ -93,7 +105,7 @@ class DemotivatorMod(loader.Module):
             w = bbox[2] - bbox[0]
             draw.text(((total_width - w) / 2, current_y), title, font=font_title, fill="white")
             current_y += title_h + text_spacing
-
+        
         if subtitle:
             bbox = draw.textbbox((0, 0), subtitle, font=font_sub)
             w = bbox[2] - bbox[0]
