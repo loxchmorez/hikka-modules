@@ -80,13 +80,20 @@ class DemotivatorMod(loader.Module):
 
         draw = ImageDraw.Draw(result)
 
+        def draw_centered(text, y, font):
+            bbox = draw.textbbox((0, 0), text, font=font)
+            w = bbox[2] - bbox[0]
+            draw.text(((width - w) / 2, y), text, font=font, fill="white")
+
         if title:
-            w, h = draw.textsize(title, font=font_title)
-            draw.text(((total_width - w) / 2, height + padding_top + text_spacing), title, font=font_title, fill="white")
+            # w, h = draw.textbbox(title, font=font_title)
+            # draw.text(((total_width - w) / 2, height + padding_top + text_spacing), title, font=font_title, fill="white")
+            draw_centered(title, ((total_width - w) / 2, height + padding_top + text_spacing), font_title)
 
         if subtitle:
-            w2, h2 = draw.textsize(subtitle, font=font_sub)
-            draw.text(((total_width - w2) / 2, height + padding_top + 40 + text_spacing), subtitle, font=font_sub, fill="white")
+            # w2, h2 = draw.textsize(subtitle, font=font_sub)
+            # draw.text(((total_width - w2) / 2, height + padding_top + 40 + text_spacing), subtitle, font=font_sub, fill="white")
+            draw_centered(subtitle, ((total_width - w2) / 2, height + padding_top + 40 + text_spacing), font_sub)
 
         output = io.BytesIO()
         output.name = "demotivator.jpg"
