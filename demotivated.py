@@ -1,4 +1,4 @@
-# meta developer: @your_nickname
+# meta developer: rain
 # requires: Pillow
 
 from hikkatl.types import Message
@@ -25,7 +25,6 @@ class DemotivatorMod(loader.Module):
         img_bytes = await reply.download_media(bytes)
         img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
 
-        # Создание демотиватора
         width = 800
         aspect = img.width / img.height
         img_height = int(width / aspect)
@@ -36,13 +35,18 @@ class DemotivatorMod(loader.Module):
         background = Image.new("RGB", (width, total_height), "black")
         draw = ImageDraw.Draw(background)
 
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-        font_sub = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
+        # Убедись, что шрифты есть на сервере или замени путь на свой
+        try:
+            font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
+            font_sub = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
+        except Exception:
+            return await utils.answer(message, "Не удалось загрузить шрифты. Убедись, что у тебя установлен DejaVuSans.")
 
         background.paste(resized, (50, padding))
 
         def draw_centered(text, y, font):
-            w, h = draw.textsize(text, font=font)
+            bbox = draw.textbbox((0, 0), text, font=font)
+            w = bbox[2] - bbox[0]
             draw.text(((width - w) / 2, y), text, font=font, fill="white")
 
         draw_centered(title, img_height + padding + 10, font_title)
