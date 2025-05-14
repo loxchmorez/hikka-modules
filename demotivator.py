@@ -88,12 +88,14 @@ class DemotivatorMod(loader.Module):
         """
 
         if title:
-            w, h = draw.textbbox((0, 0), title, font=font_title)
+            bbox = draw.textbbox((0, 0), title, font=font_title)
+            w = bbox[2] - bbox[0]
             draw.text(((total_width - w) / 2, height + padding_top + text_spacing), title, font=font_title, fill="white")
 
         if subtitle:
-            w2, h2 = draw.textbbox((0, 0), subtitle, font=font_sub)
-            draw.text(((total_width - w2) / 2, height + padding_top + 40 + text_spacing), subtitle, font=font_sub, fill="white")
+            bbox = draw.textbbox((0, 0), subtitle, font=font_sub)
+            w = bbox[2] - bbox[0]
+            draw.text(((total_width - w) / 2, height + padding_top + 40 + text_spacing), subtitle, font=font_sub, fill="white")
 
         output = io.BytesIO()
         output.name = "demotivator.jpg"
