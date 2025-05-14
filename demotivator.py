@@ -17,28 +17,6 @@ def get_assets_dir() -> str:
 
 def dl_asset(asset_name: str) -> bool:
     assets_dir: str = get_assets_dir()
-
-    filename = asset_name.replace(" ", "_")
-    file_path = os.path.join(assets_dir, filename)
-
-    url = "https://github.com/loxchmorez/hikka-modules/raw/refs/heads/main/assets/" + asset_name.replace("/", "")
-
-    r = requests.get(url, stream=True)
-    if not r.ok:
-        return False
-    
-    with open(file_path, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024 * 8):
-            if chunk:
-                f.write(chunk)
-                f.flush()
-                os.fsync(f.fileno())
-                return True
-
-    return False
-
-def dl_asset(asset_name: str) -> bool:
-    assets_dir: str = get_assets_dir()
     asset_path: str = os.path.join(assets_dir, asset_name)
     url = "https://github.com/loxchmorez/hikka-modules/raw/refs/heads/main/assets/" + asset_name.replace("/", "")
 
