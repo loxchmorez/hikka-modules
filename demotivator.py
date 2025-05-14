@@ -59,7 +59,7 @@ class DemotivatorMod(loader.Module):
         image = Image.open(io.BytesIO(img)).convert("RGB")
 
         image = ImageOps.expand(image, border=6, fill="black")
-        image = ImageOps.expand(image, border=1, fill="white")
+        image = ImageOps.expand(image, border=2, fill="white")
 
         padding_top = 60
         padding_sides = 60
