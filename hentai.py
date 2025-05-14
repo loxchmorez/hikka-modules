@@ -28,17 +28,19 @@ class HentaiGenMod(loader.Module):
             return
 
         btn = [[{"text": f"🔁 Обновить ({source})", "callback": self._hentai_cb, "args": (tag,)}]]
-        await utils.answer(message, f"Тег: `{tag}`\nИсточник: `{source}`", media=img_url, buttons=btn)
+
+        await message.respond(f"Тег: `{tag}`\nИсточник: `{source}`", file=img_url, buttons=btn)
+        await message.delete()
 
     async def _hentai_cb(self, call, tag):
         img_url, source = await self.get_random_image(tag)
 
         if not img_url:
-            await call.edit(f"Ошибка при загрузке изображения с тегом `{tag}`")
+            await call.answer("Ошибка при загрузке.")
             return
 
         btn = [[{"text": f"🔁 Обновить ({source})", "callback": self._hentai_cb, "args": (tag,)}]]
-        await call.edit(f"Тег: `{tag}`\nИсточник: `{source}`", media=img_url, buttons=btn)
+        await call.edit(f"Тег: `{tag}`\nИсточник: `{source}`", file=img_url, buttons=btn)
 
     async def get_random_image(self, tag):
         sources = ["nekosapi", "waifu.pics"]
