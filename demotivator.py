@@ -58,8 +58,8 @@ class DemotivatorMod(loader.Module):
         img = await reply.download_media(bytes)
         image = Image.open(io.BytesIO(img)).convert("RGB")
 
-        image = ImageOps.expand(image, border=4, fill="black")
-        image = ImageOps.expand(image, border=3, fill="white")
+        image = ImageOps.expand(image, border=6, fill="black")
+        image = ImageOps.expand(image, border=6, fill="white")
 
         padding_top = 60
         padding_sides = 60
