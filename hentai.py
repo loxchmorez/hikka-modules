@@ -1,4 +1,4 @@
-# meta developer: your_username
+# meta developer: rain
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -15,14 +15,14 @@ class HentaiNekosMod(loader.Module):
         """<тег> — Получить hentai по тегу с nekosapi"""
         tag = utils.get_args_raw(message).strip().lower()
         if not tag:
-            await message.edit("Укажи тег. Пример: `.hentai pussy`")
+            await message.edit("Укажи тег. Пример: `.hentai pussy`", parse_mode="md")
             return
 
-        await message.edit(f"🔍 Ищу изображение по тегу `{tag}`...")
+        await message.edit(f"🔍 Ищу изображение по тегу `{tag}`...", parse_mode="md")
 
         image_data = await self.get_nekosapi_image(tag)
         if not image_data:
-            await message.edit(f"Изображение по тегу `{tag}` не найдено.")
+            await message.edit(f"Изображение по тегу `{tag}` не найдено.", parse_mode="md")
             return
 
         img_file, tags = image_data
@@ -45,7 +45,7 @@ class HentaiNekosMod(loader.Module):
         img_file, tags = image_data
         tags_str = ", ".join(f"`{t}`" for t in tags)
         btn = [[Button.inline("🔁 Ещё", data=f"hentai:{tag}")]]
-        await call.edit(f"Теги: {tags_str}", file=img_file, buttons=btn)
+        await call.edit(f"Теги: {tags_str}", file=img_file, buttons=btn, parse_mode="md")
 
     async def get_nekosapi_image(self, tag):
         try:
