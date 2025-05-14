@@ -1,61 +1,62 @@
 # meta developer: rain
-# requires: Pillow
+# meta name: Demotivator
+# meta description: Создаёт демотиватор из изображения в ответе
 
-from hikkatl.types import Message
-from hikka import loader, utils
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+from .. import loader, utils
 import io
 
 class DemotivatorMod(loader.Module):
-    """Создаёт демотиватор из картинки"""
     strings = {"name": "Demotivator"}
 
-    async def democmd(self, message: Message):
-        """[верхний текст];[нижний текст] — превратить картинку в демотиватор"""
+    async def demotivatorcmd(self, message):
+        args = utils.get_args_raw(message)
+        parts = [p.strip() for p in args.split("|")] if args else []
+        title = parts[0] if parts else "Демотиватор"
+        subtitle = parts[1] if len(parts) > 1 else ""
+
         reply = await message.get_reply_message()
         if not reply or not reply.photo:
-            return await utils.answer(message, "Ответь на изображение!")
+            await message.edit("❗Ответь на изображение")
+            return
 
-        args = (message.text or "").split(" ", maxsplit=1)
-        title = "ДЕМОТИВАТОР"
-        subtitle = "Когда всё идёт не по плану..."
-        if len(args) > 1 and ";" in args[1]:
-            title, subtitle = map(str.strip, args[1].split(";", 1))
+        img = await reply.download_media(bytes)
+        image = Image.open(io.BytesIO(img)).convert("RGB")
 
-        img_bytes = await reply.download_media(bytes)
-        img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+        image = ImageOps.expand(image, border=4, fill="white")
 
-        width = 800
-        aspect = img.width / img.height
-        img_height = int(width / aspect)
-        resized = img.resize((width - 100, img_height))
+        padding_top = 60
+        padding_bottom = 120
+        padding_sides = 60
+        text_spacing = 10
+        width, height = image.size
+        total_width = width + 2 * padding_sides
+        total_height = height + padding_top + padding_bottom
 
-        padding = 50
-        total_height = img_height + 2 * padding + 150
-        background = Image.new("RGB", (width, total_height), "black")
-        draw = ImageDraw.Draw(background)
+        result = Image.new("RGB", (total_width, total_height), "black")
+        result.paste(image, (padding_sides, padding_top))
 
-        # Убедись, что шрифты есть на сервере или замени путь на свой
         try:
-            font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-            font_sub = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 28)
-        except Exception:
-            return await utils.answer(message, "Не удалось загрузить шрифты. Убедись, что у тебя установлен DejaVuSans.")
+            font_title = ImageFont.truetype("times.ttf", 40)
+            font_sub = ImageFont.truetype("times.ttf", 24)
+        except:
+            font_title = ImageFont.truetype("arial.ttf", 40)
+            font_sub = ImageFont.truetype("arial.ttf", 24)
 
-        background.paste(resized, (50, padding))
+        draw = ImageDraw.Draw(result)
 
-        def draw_centered(text, y, font):
-            bbox = draw.textbbox((0, 0), text, font=font)
-            w = bbox[2] - bbox[0]
-            draw.text(((width - w) / 2, y), text, font=font, fill="white")
+        if title:
+            w, h = draw.textsize(title, font=font_title)
+            draw.text(((total_width - w) / 2, height + padding_top + text_spacing), title, font=font_title, fill="white")
 
-        draw_centered(title, img_height + padding + 10, font_title)
-        draw_centered(subtitle, img_height + padding + 70, font_sub)
+        if subtitle:
+            w2, h2 = draw.textsize(subtitle, font=font_sub)
+            draw.text(((total_width - w2) / 2, height + padding_top + 40 + text_spacing), subtitle, font=font_sub, fill="white")
 
         output = io.BytesIO()
         output.name = "demotivator.jpg"
-        background.save(output, "JPEG")
+        result.save(output, "JPEG")
         output.seek(0)
 
-        await reply.reply(file=output)
+        await message.client.send_file(message.chat_id, output, reply_to=reply.id)
         await message.delete()
