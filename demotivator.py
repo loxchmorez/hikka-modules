@@ -74,8 +74,9 @@ class DemotivatorMod(loader.Module):
         font: str = get_asset("Times New Roman.ttf")
         if font == "":
             await message.edit("❌ **Ошибка загрузки ассета!**", parse_mode="md")
-        font_title = ImageFont.truetype("arial.ttf", 40)
-        font_sub = ImageFont.truetype("arial.ttf", 24)
+            return
+        font_title = ImageFont.truetype(font, 40)
+        font_sub = ImageFont.truetype(font, 24)
 
         draw = ImageDraw.Draw(result)
 
