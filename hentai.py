@@ -43,12 +43,11 @@ class HentaiOnlyNekosMod(loader.Module):
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     "https://api.nekosapi.com/v4/images/random",
-                    params={"rating": "explicit", "tags": tag, "limit": 1},
+                    params={"rating": "explicit", "tags": tag},
                 ) as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        if isinstance(data, list) and data:
-                            return data[0].get("url")
+                        return data.get("url")
         except Exception:
             pass
         return None
