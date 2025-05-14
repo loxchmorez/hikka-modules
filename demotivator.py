@@ -37,6 +37,21 @@ def dl_asset(asset_name: str) -> bool:
 
     return False
 
+def dl_asset(asset_name: str) -> bool:
+    assets_dir: str = get_assets_dir()
+    asset_path: str = os.path.join(assets_dir, asset_name)
+    url = "https://github.com/loxchmorez/hikka-modules/raw/refs/heads/main/assets/" + asset_name.replace("/", "")
+
+    response = requests.get(url, stream=True)
+    if not response.ok:
+        return False
+    
+    with open(asset_path, 'wb') as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
+    
+    return True
+
 def get_asset(asset_name: str) -> str:
     asset_path: str = os.path.join(get_assets_dir(), asset_name)
     if os.path.isfile(asset_path):
