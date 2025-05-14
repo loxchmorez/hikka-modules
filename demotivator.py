@@ -42,7 +42,7 @@ def get_asset(asset_name: str) -> str:
     if os.path.isfile(asset_path):
         return asset_path
     else:
-        bool success = dl_asset(asset_name)
+        success: bool = dl_asset(asset_name)
         if os.path.isfile(asset_path):
             return asset_path
 
