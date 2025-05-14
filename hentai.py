@@ -12,47 +12,65 @@ class HentaiNekosMod(loader.Module):
     strings = {"name": "HentaiNekos"}
 
     async def hentaicmd(self, message: Message):
-        """<тег> — Получить hentai по тегу с nekosapi"""
-        tag = utils.get_args_raw(message).strip().lower()
-        if not tag:
-            await message.edit("Укажи тег. Пример: `.hentai pussy`", parse_mode="md")
+        """<тег1> [тег2] [...] — Получить hentai по тегам"""
+        raw_tags = utils.get_args_raw(message).strip()
+        if not raw_tags:
+            await message.edit("Укажи хотя бы один тег. Пример: `.hentai pussy neko`")
             return
 
-        await message.edit(f"🔍 Ищу изображение по тегу `{tag}`...", parse_mode="md")
+        tags = self.parse_tags(raw_tags)
+        await message.edit(f"🔍 Ищу изображение по тегам: `{', '.join(tags)}`...")
 
-        image_data = await self.get_nekosapi_image(tag)
+        image_data = await self.get_nekosapi_image(tags)
         if not image_data:
-            await message.edit(f"Изображение по тегу `{tag}` не найдено.", parse_mode="md")
+            await message.edit(f"⚠️ Ничего не найдено по тегам `{', '.join(tags)}`.")
             return
 
-        img_file, tags = image_data
-        tags_str = ", ".join(f"`{t}`" for t in tags)
-        btn = [[Button.inline("🔁 Ещё", data=f"hentai:{tag}")]]
-        await message.respond(f"Теги: {tags_str}", file=img_file, buttons=btn)
+        img_file, found_tags = image_data
+        tags_str = ", ".join(f"`{t}`" for t in found_tags)
+        btns = [[Button.inline("🔁 Ещё", data="hentai:" + ",".join(tags))]]
+
+        await message.client.send_file(
+            message.chat_id,
+            img_file,
+            caption=f"**Теги:** {tags_str}",
+            reply_to=message.reply_to_msg_id,
+            parse_mode="md",
+            buttons=btns
+        )
         await message.delete()
 
     async def inline__hentai(self, call, args):
         if not args:
-            await call.answer("Нет тега.", alert=True)
+            await call.answer("Нет тегов.", alert=True)
             return
 
-        tag = args[0]
-        image_data = await self.get_nekosapi_image(tag)
+        tags = args[0].split(",")
+        image_data = await self.get_nekosapi_image(tags)
         if not image_data:
             await call.answer("Не найдено.", alert=True)
             return
 
-        img_file, tags = image_data
-        tags_str = ", ".join(f"`{t}`" for t in tags)
-        btn = [[Button.inline("🔁 Ещё", data=f"hentai:{tag}")]]
-        await call.edit(f"Теги: {tags_str}", file=img_file, buttons=btn, parse_mode="md")
+        img_file, found_tags = image_data
+        tags_str = ", ".join(f"`{t}`" for t in found_tags)
+        btns = [[Button.inline("🔁 Ещё", data="hentai:" + ",".join(tags))]]
 
-    async def get_nekosapi_image(self, tag):
+        await call.edit(
+            file=img_file,
+            text=f"**Теги:** {tags_str}",
+            parse_mode="md",
+            buttons=btns
+        )
+
+    def parse_tags(self, raw: str):
+        return [t.strip().lower() for t in raw.replace(",", " ").split() if t.strip()]
+
+    async def get_nekosapi_image(self, tags):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     "https://api.nekosapi.com/v4/images/random",
-                    params={"rating": "explicit", "tags": tag, "limit": 1},
+                    params={"rating": "explicit", "tags": ",".join(tags), "limit": 1},
                 ) as resp:
                     if resp.status == 200:
                         data = await resp.json()
@@ -64,8 +82,8 @@ class HentaiNekosMod(loader.Module):
                                 img_resp = requests.get(url)
                                 image = Image.open(BytesIO(img_resp.content)).convert("RGBA")
                                 png_image = BytesIO()
-                                image.save(png_image, format="PNG")
                                 png_image.name = "image.png"
+                                image.save(png_image, format="PNG")
                                 png_image.seek(0)
                                 return png_image, tags
                             return url, tags
