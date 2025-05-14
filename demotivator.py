@@ -88,12 +88,12 @@ class DemotivatorMod(loader.Module):
         if title:
             # w, h = draw.textbbox(title, font=font_title)
             # draw.text(((total_width - w) / 2, height + padding_top + text_spacing), title, font=font_title, fill="white")
-            draw_centered(title, img_height + padding + 10, font_title)
+            draw_centered(title, height + padding + 10, font_title)
 
         if subtitle:
             # w2, h2 = draw.textsize(subtitle, font=font_sub)
             # draw.text(((total_width - w2) / 2, height + padding_top + 40 + text_spacing), subtitle, font=font_sub, fill="white")
-            draw_centered(subtitle, img_height + padding + 70, font_sub)
+            draw_centered(subtitle, height + padding + 70, font_sub)
 
         output = io.BytesIO()
         output.name = "demotivator.jpg"
