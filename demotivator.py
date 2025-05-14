@@ -4,7 +4,49 @@
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from .. import loader, utils
-import io
+import requests, io, os
+
+def get_assets_dir() -> str:
+    base_dir: str = os.getcwd()
+    assets_dir: str = os.path.join(base_dir, "rain-assets")
+
+    if not os.path.exists(assets_dir):
+        os.makedirs(assets_dir)
+    
+    return assets_dir
+
+def dl_asset(asset_name: str) -> bool:
+    assets_dir: str = get_assets_dir()
+
+    filename = asset_name.replace(" ", "_")
+    file_path = os.path.join(assets_dir, filename)
+
+    url = "https://github.com/loxchmorez/hikka-modules/raw/refs/heads/main/assets/" + asset_name.replace("/", "")
+
+    r = requests.get(url, stream=True)
+    if not r.ok:
+        return False
+    
+    with open(file_path, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024 * 8):
+            if chunk:
+                f.write(chunk)
+                f.flush()
+                os.fsync(f.fileno())
+                return True
+
+    return False
+
+def get_asset(asset_name: str) -> str:
+    asset_path: str = os.path.join(get_assets_dir(), asset_name)
+    if os.path.isfile(asset_path):
+        return asset_path
+    else:
+        bool success = dl_asset(asset_name)
+        if os.path.isfile(asset_path):
+            return asset_path
+
+    return ""
 
 class DemotivatorMod(loader.Module):
     strings = {"name": "Demotivator"}
@@ -17,7 +59,7 @@ class DemotivatorMod(loader.Module):
 
         reply = await message.get_reply_message()
         if not reply or not reply.photo:
-            await message.edit("❗Ответь на изображение")
+            await message.edit("❗ **Ответь на изображение**", parse_mode="md")
             return
 
         img = await reply.download_media(bytes)
@@ -36,12 +78,11 @@ class DemotivatorMod(loader.Module):
         result = Image.new("RGB", (total_width, total_height), "black")
         result.paste(image, (padding_sides, padding_top))
 
-        try:
-            font_title = ImageFont.truetype("times.ttf", 40)
-            font_sub = ImageFont.truetype("times.ttf", 24)
-        except:
-            font_title = ImageFont.truetype("arial.ttf", 40)
-            font_sub = ImageFont.truetype("arial.ttf", 24)
+        font: str = get_asset("Times New Roman.ttf")
+        if font == "":
+            await message.edit("❌ **Ошибка загрузки ассета!**", parse_mode="md")
+        font_title = ImageFont.truetype("arial.ttf", 40)
+        font_sub = ImageFont.truetype("arial.ttf", 24)
 
         draw = ImageDraw.Draw(result)
 
