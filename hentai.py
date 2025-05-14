@@ -1,4 +1,4 @@
-# meta developer: rain
+# meta developer: your_username
 
 from .. import loader, utils
 from telethon.tl.types import Message
@@ -8,7 +8,7 @@ import aiohttp
 import requests
 from io import BytesIO
 
-class HentaiNekosOnlyMod(loader.Module):
+class HentaiNekosMod(loader.Module):
     strings = {"name": "HentaiNekos"}
 
     async def hentaicmd(self, message: Message):
@@ -18,13 +18,17 @@ class HentaiNekosOnlyMod(loader.Module):
             await message.edit("Укажи тег. Пример: `.hentai pussy`")
             return
 
-        img_file = await self.get_image_file(tag)
-        if not img_file:
+        await message.edit(f"🔍 Ищу изображение по тегу `{tag}`...")
+
+        image_data = await self.get_nekosapi_image(tag)
+        if not image_data:
             await message.edit(f"Изображение по тегу `{tag}` не найдено.")
             return
 
+        img_file, tags = image_data
+        tags_str = ", ".join(f"`{t}`" for t in tags)
         btn = [[Button.inline("🔁 Ещё", data=f"hentai:{tag}")]]
-        await message.respond(f"Тег: `{tag}`\nИсточник: nekosapi", file=img_file, buttons=btn)
+        await message.respond(f"Теги: {tags_str}", file=img_file, buttons=btn)
         await message.delete()
 
     async def inline__hentai(self, call, args):
@@ -33,15 +37,17 @@ class HentaiNekosOnlyMod(loader.Module):
             return
 
         tag = args[0]
-        img_file = await self.get_image_file(tag)
-        if not img_file:
+        image_data = await self.get_nekosapi_image(tag)
+        if not image_data:
             await call.answer("Не найдено.", alert=True)
             return
 
+        img_file, tags = image_data
+        tags_str = ", ".join(f"`{t}`" for t in tags)
         btn = [[Button.inline("🔁 Ещё", data=f"hentai:{tag}")]]
-        await call.edit(f"Тег: `{tag}`\nИсточник: nekosapi", file=img_file, buttons=btn)
+        await call.edit(f"Теги: {tags_str}", file=img_file, buttons=btn)
 
-    async def get_image_file(self, tag: str):
+    async def get_nekosapi_image(self, tag):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
@@ -51,27 +57,18 @@ class HentaiNekosOnlyMod(loader.Module):
                     if resp.status == 200:
                         data = await resp.json()
                         if isinstance(data, list) and data:
-                            url = data[0].get("url")
+                            image_info = data[0]
+                            url = image_info.get("url")
+                            tags = image_info.get("tags", [])
                             if url.endswith(".webp"):
-                                # Конвертация webp → png
                                 img_resp = requests.get(url)
                                 image = Image.open(BytesIO(img_resp.content)).convert("RGBA")
                                 png_image = BytesIO()
                                 image.save(png_image, format="PNG")
                                 png_image.name = "image.png"
                                 png_image.seek(0)
-                                return png_image
-                            return url
+                                return png_image, tags
+                            return url, tags
         except Exception as e:
             print(f"[nekosapi error] {e}")
         return None
-
-    async def hentai_tagscmd(self, message: Message):
-        """Показать доступные теги"""
-        try:
-            r = requests.get("https://api.nekosapi.com/v4/tags")
-            tags = sorted([tag["name"] for tag in r.json()])
-            text = ", ".join(tags)
-            await utils.answer(message, f"Доступные теги ({len(tags)}):\n{text}")
-        except Exception:
-            await utils.answer(message, "Не удалось загрузить теги.")
