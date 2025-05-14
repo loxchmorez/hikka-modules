@@ -20,7 +20,7 @@ class BFGCaseOpener(loader.Module):
         self._case_info = {}
 
     async def watcher(self, message):
-        if not message or not message.chat or message.chat.id != 1721358063:
+        if not message or not message.chat or message.sender_id != 1721358063:
             return
 
         if not message.text:
