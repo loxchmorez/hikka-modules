@@ -5,27 +5,20 @@ from telethon.tl.types import Message
 import aiohttp
 import asyncio
 import random
-from hmtai import Hmtai
 
 class HentaiGenMod(loader.Module):
     strings = {"name": "HentaiGen"}
-    hmtai = Hmtai()
 
     waifu_tags = ["waifu", "neko", "trap", "blowjob"]
     nekosapi_endpoint = "https://api.nekosapi.com/v4/images/random"
     nekosapi_rating = "explicit"
-    hmtai_tags = [
-        "anal", "ass", "bdsm", "cum", "femdom", "foot", "gangbang", "hentai",
-        "incest", "masturbation", "neko", "orgy", "panties", "pussy", "school",
-        "tentacles", "thighs", "uglyBastard", "uniform", "yuri"
-    ]
 
     async def hentaicmd(self, message: Message):
         """<тег> — сгенерировать hentai картинку"""
         tag = utils.get_args_raw(message).strip().lower()
 
         if not tag:
-            await message.edit("Укажи тег, например `.hentai pussy`")
+            await message.edit("Укажи тег, например `.hentai neko`")
             return
 
         img_url, source = await self.get_random_image(tag)
@@ -48,16 +41,12 @@ class HentaiGenMod(loader.Module):
         await call.edit(f"Тег: `{tag}`\nИсточник: `{source}`", media=img_url, buttons=btn)
 
     async def get_random_image(self, tag):
-        sources = ["hmtai", "nekosapi", "waifu.pics"]
+        sources = ["nekosapi", "waifu.pics"]
         random.shuffle(sources)
 
         for source in sources:
             try:
-                if source == "hmtai" and tag in self.hmtai_tags:
-                    url = await asyncio.get_event_loop().run_in_executor(None, lambda: self.hmtai.get("hmtai", tag))
-                    return url, "hmtai"
-
-                elif source == "nekosapi":
+                if source == "nekosapi":
                     async with aiohttp.ClientSession() as session:
                         async with session.get(
                             self.nekosapi_endpoint,
