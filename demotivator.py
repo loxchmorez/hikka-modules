@@ -85,8 +85,14 @@ class DemotivatorMod(loader.Module):
             await message.edit("❌ **Ошибка загрузки шрифта**", parse_mode="md")
             return
 
-        font_title = ImageFont.truetype(font_path, 40)
-        font_sub = ImageFont.truetype(font_path, 24)
+        font_title_size = int(total_width * 0.05)
+        font_sub_size = int(total_width * 0.03)
+
+        font_title_size = max(font_title_size, 24)
+        font_sub_size = max(font_sub_size, 16)
+
+        font_title = ImageFont.truetype(font_path, font_title_size)
+        font_sub = ImageFont.truetype(font_path, font_sub_size)
 
         dummy_draw = ImageDraw.Draw(Image.new("RGB", (1, 1)))
         title_h = dummy_draw.textbbox((0, 0), title, font=font_title)[3] if title else 0
