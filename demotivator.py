@@ -88,7 +88,7 @@ class DemotivatorMod(loader.Module):
         """
 
         if title:
-            w, h = draw.textbbox((0, 0), title, font=font)
+            w, h = draw.textbbox((0, 0), title, font=font_title)
             draw.text(((total_width - w) / 2, height + padding_top + text_spacing), title, font=font_title, fill="white")
 
         if subtitle:
