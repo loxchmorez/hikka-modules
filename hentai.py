@@ -49,6 +49,49 @@ class hentai:
             print(f"[nekosapi error] {e}")
         return None
 
+    @staticmethod
+    async def check_url(url: str) -> bool:
+        """Проверяет, доступна ли ссылка"""
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.head(url) as response:
+                    return response.status == 200
+        except Exception:
+            return False
+
+    @staticmethod
+    async def find_loli(tags):
+        output = None
+        while True
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        "https://api.lolicon.app/setu/v2",
+                        params={"r18": 1, "uid": 16731, "excludeAI": true, "aspectRatio": "lt1"},
+                    ) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            if isinstance(data, list) and data:
+                                image_info = data["data"]
+                                url = image_info.get("urls").get("original")
+                                if not check_url(url):
+                                    continue
+                                
+                                if url.endswith(".webp"):
+                                    async with session.get(url) as img_resp:
+                                        img_bytes = await img_resp.read()
+                                        image = Image.open(BytesIO(img_bytes)).convert("RGBA")
+                                        output = BytesIO()
+                                        output.name = "image.png"
+                                        image.save(output, format="PNG", optimize=True)
+                                        output.seek(0)
+                                        return output
+                                return url
+            except Exception as e:
+                print(f"[nekosapi error] {e}")
+        return None
+
+
 @loader.tds
 class HentaiMod(loader.Module):
     """Модуль для генерации хентай изображений"""
@@ -141,3 +184,17 @@ class HentaiMod(loader.Module):
         btns = [[Button.inline(self.format_string("more"), data="hentai:" + ",".join(tags))]]
 
         await call.edit(file=file, text=caption, buttons=btns, parse_mode="html")
+
+    @loader.command()
+    async def loli(self, message: Message):
+        result = await hentai.find_loli()
+        if not result:
+            await message.edit(f"Лох, саси", parse_mode="html")
+            return
+
+        await message.client.send_file(
+            message.chat_id,
+            result,
+            reply_to=message.reply_to_msg_id
+        )
+        await message.delete()
