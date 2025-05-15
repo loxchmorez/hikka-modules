@@ -57,7 +57,7 @@ class HentaiMod(loader.Module):
         "name": "HentaiMod",
         "lang": "EN",
         "looking_for": "{} Searching for an image by tags:",
-        "no_tags": "{} Provide at least one tag. Example: `.hentai pussy`",
+        "no_tags": "{} Provide at least one tag. Example: <code>.hentai pussy</code>",
         "not_found": "{} Nothing found by tags:",
         "more": "{} More",
         "tags": "{} Tags:"
@@ -66,10 +66,10 @@ class HentaiMod(loader.Module):
     strings_ru = {
         "lang": "RU",
         "looking_for": "{} Ищу изображение по тегам:",
-        "no_tags": "{} Укажи хотя бы один тег. Пример: `.hentai pussy`",
+        "no_tags": "{} Укажи хотя бы один тег. Пример: <code>.hentai pussy</code>",
         "not_found": "{} Ничего не найдено по тегам:",
         "more": "{} Ещё",
-        "tags": "{} Теги:"
+        "tags": "{} <b>Теги:</b>"
     }
 
     format_map = {
@@ -94,25 +94,25 @@ class HentaiMod(loader.Module):
     def translate_tags(self, tags):
         lang = self.strings("lang")
         translation_map = dict(zip(self.genres_en, self.genres_ru)) if lang == "RU" else {}
-        return ', '.join(f"`{translation_map.get(tag, tag).replace('_', ' ')}`" for tag in tags)
+        return ', '.join(f"<code>{translation_map.get(tag, tag).replace('_', ' ')}</code>" for tag in tags)
 
     @loader.command(ru_doc="Поиск по тегам", en_doc="Search by tags")
     async def hentai(self, message: Message):
         raw = utils.get_args_raw(message)
         if not raw:
-            await message.edit(self.format_string("no_tags"), parse_mode="md")
+            await message.edit(self.format_string("no_tags"), parse_mode="html")
             return
 
         tags = hentai.parse_tags(raw)
-        await message.edit(f"{self.format_string('looking_for')} `{', '.join(tags)}`...", parse_mode="md")
+        await message.edit(f"{self.format_string('looking_for')} <code>{', '.join(tags)}</code>...", parse_mode="html")
 
         result = await hentai.find_image(tags)
         if not result:
-            await message.edit(f"{self.format_string('not_found')} `{', '.join(tags)}`.", parse_mode="md")
+            await message.edit(f"{self.format_string('not_found')} <code>{', '.join(tags)}</code>.", parse_mode="html")
             return
 
         file, found_tags = result
-        caption = f"**{self.format_string('tags')}** {self.translate_tags(found_tags)}"
+        caption = f"{self.format_string('tags')} {self.translate_tags(found_tags)}"
         btns = [[Button.inline(self.format_string("more"), data="hentai:" + ",".join(tags))]]
 
         await message.client.send_file(
@@ -121,7 +121,7 @@ class HentaiMod(loader.Module):
             caption=caption,
             reply_to=message.reply_to_msg_id,
             buttons=btns,
-            parse_mode="md"
+            parse_mode="html"
         )
         await message.delete()
 
@@ -137,7 +137,7 @@ class HentaiMod(loader.Module):
             return
 
         file, found_tags = result
-        caption = f"**{self.format_string('tags')}** {self.translate_tags(found_tags)}"
+        caption = f"{self.format_string('tags')} {self.translate_tags(found_tags)}"
         btns = [[Button.inline(self.format_string("more"), data="hentai:" + ",".join(tags))]]
 
-        await call.edit(file=file, text=caption, buttons=btns, parse_mode="md")
+        await call.edit(file=file, text=caption, buttons=btns, parse_mode="html")
