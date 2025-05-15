@@ -77,7 +77,7 @@ class HentaiMod(loader.Module):
         "tags": Pair("#️⃣", "![📎](tg://emoji?id=5305265301917549162)")
     }
 
-    def self.format_string(self, string_name: str):
+    def format_string(self, string_name: str):
         string = self.strings(string_name)
         e1, e2 = format_map[string_name]
         if self._client.hikka_me.premium:
