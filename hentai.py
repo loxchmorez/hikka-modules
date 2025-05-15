@@ -55,14 +55,18 @@ class hentai:
             for _ in range(max_retries):
                 try:
                     async with session.get("https://api.lolicon.app/setu/v2?r18=1&tag=loli&num=10") as resp:
-                        data = await resp.json()["data"]
-                        for i in range(10):
-                            idata = data[i]
-                            tags = idata.get("tags")
-                            if "loli" not in tags:
+                        if resp.status != 200:
+                            continue
+
+                        json_data = await resp.json()
+                        data = json_data.get("data", [])
+                        for idata in data:
+                            tags = idata.get("tags", [])
+                            if not any("loli" in tag for tag in tags):
                                 continue
+
                             url = idata.get("urls", {}).get("original")
-                            if url and await hentai.check_url(url):
+                            if url and await hentai.check_url(session, url):
                                 return url
                 except Exception as e:
                     print(f"[pixiv api error] {e}")
@@ -175,13 +179,15 @@ class HentaiMod(loader.Module):
 
         result = await hentai.get_pixiv_image()
         if not result:
-            await message.edit(self.format_string("not_found") + f". ({result})", parse_mode="html")
+            await message.edit(self.format_string("not_found") + ".", parse_mode="html")
             return
-        caption = f"{self.format_string('tags')}"
+
+        url = result
+        caption = f"{self.format_string('tags')} {self.translate_tags(found_tags)}"
 
         await message.client.send_file(
             message.chat_id,
-            result,
+            url,
             caption=caption,
             reply_to=message.reply_to_msg_id,
             parse_mode="html"
