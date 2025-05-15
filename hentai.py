@@ -50,16 +50,17 @@ class hentai:
         return None
 
     @staticmethod
-    async def get_pixiv_image(tags, max_retries=5):
+    async def get_pixiv_image(message, max_retries=5):
         async with aiohttp.ClientSession() as session:
             for _ in range(max_retries):
                 try:
                     async with session.get("https://api.lolicon.app/setu/v2", params={"r18": 1, "uid": 16731, "excludeAI": "true", "aspectRatio": "lt1"}) as resp:
                         data = await resp.json()
                         image = data.get("data", [])[0]
+                        message.edit(image)
                         url = image["urls"]["original"]
                         if await hentai.check_url(session, url):
-                            return url, image.get("tags", [])
+                            return url
                 except Exception as e:
                     print(f"[pixiv api error] {e}")
         return None
@@ -169,17 +170,15 @@ class HentaiMod(loader.Module):
     async def loli(self, message: Message):
         await message.edit(self.format_string("looking_for") + " ...", parse_mode="html")
 
-        result = await hentai.get_pixiv_image([])
+        result = await hentai.get_pixiv_image(message)
         if not result:
             await message.edit(self.format_string("not_found") + ".", parse_mode="html")
             return
-
-        url, found_tags = result
-        caption = f"{self.format_string('tags')} {self.translate_tags(found_tags)}"
+        caption = f"{self.format_string('tags')}"
 
         await message.client.send_file(
             message.chat_id,
-            url,
+            result,
             caption=caption,
             reply_to=message.reply_to_msg_id,
             parse_mode="html"
