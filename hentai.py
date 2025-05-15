@@ -55,7 +55,7 @@ class hentai:
             await message.reply("Started search")
             for _ in range(max_retries):
                 try:
-                    async with session.get("https://api.lolicon.app/setu/v2?r18=1&tag=loli&num=10") as resp:
+                    async with session.get("https://api.lolicon.app/setu/v2?r18=1&tag=loli&num=10", proxy="46.61.100.75:7788") as resp:
                         await message.reply(f"Got response with code {resp.status}")
                         if resp.status != 200:
                             continue
