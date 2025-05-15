@@ -77,7 +77,7 @@ class HentaiMod(loader.Module):
         "tags": Pair("#️⃣", "![📎](tg://emoji?id=5305265301917549162)")
     }
 
-    def format_string(string_name: str):
+    def self.format_string(self, string_name: str):
         string = self.strings(string_name)
         e1, e2 = format_map[string_name]
         if self._client.hikka_me.premium:
@@ -97,20 +97,20 @@ class HentaiMod(loader.Module):
     async def hentai(self, message: Message):
         raw = utils.get_args_raw(message)
         if not raw:
-            await message.edit(format_string("no_tags"), parse_mode="md")
+            await message.edit(self.format_string("no_tags"), parse_mode="md")
             return
 
         tags = hentai.parse_tags(raw)
-        await message.edit(f"{format_string('looking_for')} `{', '.join(tags)}`...", parse_mode="md")
+        await message.edit(f"{self.format_string('looking_for')} `{', '.join(tags)}`...", parse_mode="md")
 
         result = await hentai.find_image(tags)
         if not result:
-            await message.edit(f"{format_string('not_found')} `{', '.join(tags)}`.", parse_mode="md")
+            await message.edit(f"{self.format_string('not_found')} `{', '.join(tags)}`.", parse_mode="md")
             return
 
         file, found_tags = result
-        caption = f"**{format_string('tags')}** {self.translate_tags(found_tags)}"
-        btns = [[Button.inline(format_string("more"), data="hentai:" + ",".join(tags))]]
+        caption = f"**{self.format_string('tags')}** {self.translate_tags(found_tags)}"
+        btns = [[Button.inline(self.format_string("more"), data="hentai:" + ",".join(tags))]]
 
         await message.client.send_file(
             message.chat_id,
@@ -124,17 +124,17 @@ class HentaiMod(loader.Module):
 
     async def inline__hentai(self, call, args):
         if not args:
-            await call.answer(format_string("no_tags"), alert=True)
+            await call.answer(self.format_string("no_tags"), alert=True)
             return
 
         tags = args[0].split(",")
         result = await hentai.find_image(tags)
         if not result:
-            await call.answer(format_string("not_found"), alert=True)
+            await call.answer(self.format_string("not_found"), alert=True)
             return
 
         file, found_tags = result
-        caption = f"**{format_string('tags')}** {self.translate_tags(found_tags)}"
-        btns = [[Button.inline(format_string("more"), data="hentai:" + ",".join(tags))]]
+        caption = f"**{self.format_string('tags')}** {self.translate_tags(found_tags)}"
+        btns = [[Button.inline(self.format_string("more"), data="hentai:" + ",".join(tags))]]
 
         await call.edit(file=file, text=caption, buttons=btns, parse_mode="md")
