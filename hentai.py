@@ -203,11 +203,11 @@ class HentaiMod(loader.Module):
             return
 
         tags = hentai.parse_tags(raw_tags)
-        await message.edit(f"{self.strings("looking_for")} `{', '.join(tags)}`...", parse_mode="md")
+        await message.edit(f"{self.strings('looking_for')} `{', '.join(tags)}`...", parse_mode="md")
 
         image_data = await hentai.find_image(tags)
         if not image_data:
-            await message.edit(f"{self.strings("not_found")} `{', '.join(tags)}`.", parse_mode="md")
+            await message.edit(f"{self.strings('not_found')} `{', '.join(tags)}`.", parse_mode="md")
             return
 
         img_file, found_tags = image_data
@@ -217,7 +217,7 @@ class HentaiMod(loader.Module):
         await message.client.send_file(
             message.chat_id,
             img_file,
-            caption=f"**{self.strings("tags")}:** {tags_str}",
+            caption=f"**{self.strings('tags')}:** {tags_str}",
             reply_to=message.reply_to_msg_id,
             parse_mode="md",
             buttons=btns
@@ -241,7 +241,7 @@ class HentaiMod(loader.Module):
 
         await call.edit(
             file=img_file,
-            text=f"**{self.strings("tags")}:** {tags_str}",
+            text=f"**{self.strings('tags')}:** {tags_str}",
             parse_mode="md",
             buttons=btns
         )
