@@ -55,8 +55,11 @@ class hentai:
             for _ in range(max_retries):
                 try:
                     async with session.get("https://api.lolicon.app/setu/v2?r18=1&tag=loli&num=10") as resp:
+                        print(f"{resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status}")
                         if resp.status != 200:
                             continue
+
+                        print("STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF")
 
                         json_data = await resp.json()
                         data = json_data.get("data", [])
