@@ -61,6 +61,7 @@ class hentai:
                         json_data = await resp.json()
                         data = json_data.get("data", [])
                         for idata in data:
+                            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                             tags = idata.get("tags", [])
                             if not any("loli" in tag for tag in tags):
                                 continue
