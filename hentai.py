@@ -6,6 +6,12 @@ from telethon import Button
 from PIL import Image
 import aiohttp
 from io import BytesIO
+from dataclasses import dataclass
+
+@dataclass
+class Pair:
+    first: str
+    second: str
 
 class hentai:
     @staticmethod
