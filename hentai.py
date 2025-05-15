@@ -60,8 +60,7 @@ class hentai:
             return False
 
     @staticmethod
-    async def find_loli(tags):
-        output = None
+    async def find_loli():
         while True:
             try:
                 async with aiohttp.ClientSession() as session:
