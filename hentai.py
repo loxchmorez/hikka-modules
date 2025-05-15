@@ -66,7 +66,7 @@ class hentai:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(
                         "https://api.lolicon.app/setu/v2",
-                        params={"r18": 1, "uid": 16731, "excludeAI": True, "aspectRatio": "lt1"},
+                        params={"r18": 1, "uid": 16731, "excludeAI": "true", "aspectRatio": "lt1"},
                     ) as resp:
                         if resp.status == 200:
                             data = await resp.json()
