@@ -52,11 +52,11 @@ class hentai:
     @staticmethod
     async def get_pixiv_image(message, max_retries=5):
         async with aiohttp.ClientSession() as session:
-            message.reply("Started search")
+            await message.reply("Started search")
             for _ in range(max_retries):
                 try:
                     async with session.get("https://api.lolicon.app/setu/v2?r18=1&tag=loli&num=10") as resp:
-                        message.reply(f"Got response with code {resp.status}")
+                        await message.reply(f"Got response with code {resp.status}")
                         if resp.status != 200:
                             continue
 
@@ -67,7 +67,7 @@ class hentai:
                             if not any("loli" in tag for tag in tags):
                                 continue
 
-                            message.reply("Got good image")
+                            await message.reply("Got good image")
 
                             url = idata.get("urls", {}).get("original")
                             if url and await hentai.check_url(session, url):
