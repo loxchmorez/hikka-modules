@@ -59,10 +59,10 @@ class hentai:
                         for i in range(10):
                             idata = data[i]
                             tags = idata.get("tags")
-                            if not "loli" in tags:
+                            if "loli" not in tags:
                                 continue
-                            url = idata.get("urls").get("original")
-                            if await hentai.check_url(session, url):
+                            url = idata.get("urls", {}).get("original")
+                            if url and await hentai.check_url(url):
                                 return url
                 except Exception as e:
                     print(f"[pixiv api error] {e}")
@@ -175,7 +175,7 @@ class HentaiMod(loader.Module):
 
         result = await hentai.get_pixiv_image()
         if not result:
-            await message.edit(self.format_string("not_found") + ".", parse_mode="html")
+            await message.edit(self.format_string("not_found") + f". ({result})", parse_mode="html")
             return
         caption = f"{self.format_string('tags')}"
 
