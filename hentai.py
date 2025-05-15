@@ -50,24 +50,24 @@ class hentai:
         return None
 
     @staticmethod
-    async def get_pixiv_image(max_retries=5):
+    async def get_pixiv_image(message, max_retries=5):
         async with aiohttp.ClientSession() as session:
+            message.reply("Started search")
             for _ in range(max_retries):
                 try:
                     async with session.get("https://api.lolicon.app/setu/v2?r18=1&tag=loli&num=10") as resp:
-                        print(f"{resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status} {resp.status}")
+                        message.reply(f"Got response with code {resp.status}")
                         if resp.status != 200:
                             continue
-
-                        print("STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF STANDOFF")
 
                         json_data = await resp.json()
                         data = json_data.get("data", [])
                         for idata in data:
-                            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                             tags = idata.get("tags", [])
                             if not any("loli" in tag for tag in tags):
                                 continue
+
+                            message.reply("Got good image")
 
                             url = idata.get("urls", {}).get("original")
                             if url and await hentai.check_url(session, url):
@@ -181,7 +181,7 @@ class HentaiMod(loader.Module):
     async def loli(self, message: Message):
         await message.edit(self.format_string("looking_for") + " ...", parse_mode="html")
 
-        result = await hentai.get_pixiv_image()
+        result = await hentai.get_pixiv_image(message)
         if not result:
             await message.edit(self.format_string("not_found") + ".", parse_mode="html")
             return
