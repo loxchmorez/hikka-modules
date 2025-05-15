@@ -47,21 +47,37 @@ class HentaiMod(loader.Module):
     strings = {
         "name": "HentaiMod",
         "lang": "EN",
-        "looking_for": "🔍 Searching for an image by tags:",
-        "no_tags": "❗️ Provide at least one tag. Example: `.hentai pussy`",
-        "not_found": "⚠️ Nothing found by tags:",
-        "more": "🔁 More",
-        "tags": "#️⃣ Tags:"
+        "looking_for": "{} Searching for an image by tags:",
+        "no_tags": "{} Provide at least one tag. Example: `.hentai pussy`",
+        "not_found": "{} Nothing found by tags:",
+        "more": "{} More",
+        "tags": "{} Tags:"
     }
 
     strings_ru = {
         "lang": "RU",
-        "looking_for": "🔍 Ищу изображение по тегам:",
-        "no_tags": "❗️ Укажи хотя бы один тег. Пример: `.hentai pussy`",
-        "not_found": "⚠️ Ничего не найдено по тегам:",
-        "more": "🔁 Ещё",
-        "tags": "#️⃣ Теги:"
+        "looking_for": "{} Ищу изображение по тегам:",
+        "no_tags": "{} Укажи хотя бы один тег. Пример: `.hentai pussy`",
+        "not_found": "{} Ничего не найдено по тегам:",
+        "more": "{} Ещё",
+        "tags": "{} Теги:"
     }
+
+    format_map = {
+        "looking_for": Pair("🔎", "![🔍](tg://emoji?id=5231012545799666522)"),
+        "no_tags": Pair("❌", "![❌](tg://emoji?id=5210952531676504517)"),
+        "not_found": Pair("⚠️", "![⚠️](tg://emoji?id=5447644880824181073)"),
+        "more": Pair("🔁", "🔁"),
+        "tags": Pair("#️⃣", "![📎](tg://emoji?id=5305265301917549162)")
+    }
+
+    def format_string(string_name: str):
+        string = self.strings(string_name)
+        e1, e2 = format_map[string_name]
+        if self._client.hikka_me.premium:
+            return string.format(e2)
+        else:
+            return string.format(e1)
 
     genres_en = ["anal", "beach", "bikini", "black hair", "blonde hair", "blue hair", "boy", "brown hair", "bunny girl", "catgirl", "dick", "dress", "exposed anus", "exposed girl breasts", "flat chest", "flowers", "futanari", "girl", "glasses", "gloves", "guitar", "horsegirl", "ice cream", "kemonomimi", "kissing", "large breasts", "maid", "masturbating", "medium breasts", "mountain", "night", "pink hair", "plants", "purple hair", "pussy", "rain", "reading", "red hair", "school uniform", "shorts", "skirt", "small breasts", "sportswear", "sunny", "sword", "threesome", "tree", "usagimimi", "weapon", "wet", "white hair", "yuri"]
     genres_ru = ["анал", "пляж", "бикини", "чёрные волосы", "светлые волосы", "голубые волосы", "парень", "коричневые волосы", "девушка-кролик", "девушка-кошка", "пенис", "одежда", "обнаженный анус", "обнаженная женская грудь", "плоская грудь", "цветы", "гермафродит", "девушка", "очки", "перчатки", "гитара", "девушка-лошадь", "мороженое", "кемономими", "поцелуй", "большая грудь", "служанка", "мастурбировация", "средняя грудь", "гора", "ночь", "розовые волосы", "растения", "фиолетовые волосы", "киска", "дождь", "чтение", "красные волосы", "школьная форма", "шорты", "юбка", "маленькая грудь", "спортивная одежда", "солнечно", "меч", "тройка", "дерево", "усагимими", "оружие", "мокрое тело", "белые волосы", "юри"]
@@ -75,20 +91,20 @@ class HentaiMod(loader.Module):
     async def hentai(self, message: Message):
         raw = utils.get_args_raw(message)
         if not raw:
-            await message.edit(self.strings("no_tags"), parse_mode="md")
+            await message.edit(format_string("no_tags"), parse_mode="md")
             return
 
         tags = hentai.parse_tags(raw)
-        await message.edit(f"{self.strings('looking_for')} `{', '.join(tags)}`...", parse_mode="md")
+        await message.edit(f"{format_string('looking_for')} `{', '.join(tags)}`...", parse_mode="md")
 
         result = await hentai.find_image(tags)
         if not result:
-            await message.edit(f"{self.strings('not_found')} `{', '.join(tags)}`.", parse_mode="md")
+            await message.edit(f"{format_string('not_found')} `{', '.join(tags)}`.", parse_mode="md")
             return
 
         file, found_tags = result
-        caption = f"**{self.strings('tags')}** {self.translate_tags(found_tags)}"
-        btns = [[Button.inline(self.strings("more"), data="hentai:" + ",".join(tags))]]
+        caption = f"**{format_string('tags')}** {self.translate_tags(found_tags)}"
+        btns = [[Button.inline(format_string("more"), data="hentai:" + ",".join(tags))]]
 
         await message.client.send_file(
             message.chat_id,
@@ -100,26 +116,19 @@ class HentaiMod(loader.Module):
         )
         await message.delete()
 
-    @loader.command()
-    async def is_premium(self, message: Message):
-        if self._client.hikka_me.premium:
-            await message.edit("👑 Вы **Premium** пользователь!", parse_mode="md")
-        else:
-            await message.edit("🕳️ Вы не **Premium** пользователь!", parse_mode="md")
-
     async def inline__hentai(self, call, args):
         if not args:
-            await call.answer(self.strings("no_tags"), alert=True)
+            await call.answer(format_string("no_tags"), alert=True)
             return
 
         tags = args[0].split(",")
         result = await hentai.find_image(tags)
         if not result:
-            await call.answer(self.strings("not_found"), alert=True)
+            await call.answer(format_string("not_found"), alert=True)
             return
 
         file, found_tags = result
-        caption = f"**{self.strings('tags')}** {self.translate_tags(found_tags)}"
-        btns = [[Button.inline(self.strings("more"), data="hentai:" + ",".join(tags))]]
+        caption = f"**{format_string('tags')}** {self.translate_tags(found_tags)}"
+        btns = [[Button.inline(format_string("more"), data="hentai:" + ",".join(tags))]]
 
         await call.edit(file=file, text=caption, buttons=btns, parse_mode="md")
