@@ -4,7 +4,7 @@ from .. import loader, utils
 from telethon.tl.types import Message
 from telethon import Button
 from PIL import Image
-import aiohttp
+import aiohttp, time
 from io import BytesIO
 from dataclasses import dataclass
 
@@ -57,7 +57,8 @@ class hentai:
                     async with session.get("https://api.lolicon.app/setu/v2", params={"r18": 1, "uid": 16731, "excludeAI": "true", "aspectRatio": "lt1"}) as resp:
                         data = await resp.json()
                         image = data.get("data", [])[0]
-                        message.edit(image)
+                        await message.edit(image)
+                        time.sleep(2)
                         url = image["urls"]["original"]
                         if await hentai.check_url(session, url):
                             return url
