@@ -73,7 +73,7 @@ class HentaiMod(loader.Module):
     }
 
     format_map = {
-        "looking_for": Pair("🔎", "![🔍](tg://emoji?id=5231012545799666522)"),
+        "looking_for": Pair("🔎", "<emoji document_id=5231012545799666522>🔍</emoji>"),
         "no_tags": Pair("❌", "![❌](tg://emoji?id=5210952531676504517)"),
         "not_found": Pair("⚠️", "![⚠️](tg://emoji?id=5447644880824181073)"),
         "more": Pair("🔁", "🔁"),
