@@ -49,21 +49,21 @@ class HentaiMod(loader.Module):
         "lang": "EN",
         "looking_for": "🔍 Searching for an image by tags:",
         "no_tags": "❗️ Provide at least one tag. Example: `.hentai pussy`",
-        "not_found": "⚠️ Nothing found by tags",
+        "not_found": "⚠️ Nothing found by tags:",
         "more": "🔁 More",
-        "tags": "Tags:"
+        "tags": "#️⃣ Tags:"
     }
 
     strings_ru = {
         "lang": "RU",
         "looking_for": "🔍 Ищу изображение по тегам:",
         "no_tags": "❗️ Укажи хотя бы один тег. Пример: `.hentai pussy`",
-        "not_found": "⚠️ Ничего не найдено по тегам",
+        "not_found": "⚠️ Ничего не найдено по тегам:",
         "more": "🔁 Ещё",
-        "tags": "Теги:"
+        "tags": "#️⃣ Теги:"
     }
 
-    genres_en = ["anal", "beach", "bikini", "black_hair", "blonde_hair", "blue_hair", "boy", "brown_hair", "bunny_girl", "catgirl", "dick", "dress", "exposed_anus", "exposed_girl_breasts", "flat_chest", "flowers", "futanari", "girl", "glasses", "gloves", "guitar", "horsegirl", "ice_cream", "kemonomimi", "kissing", "large_breasts", "maid", "masturbating", "medium_breasts", "mountain", "night", "pink_hair", "plants", "purple_hair", "pussy", "rain", "reading", "red_hair", "school_uniform", "shorts", "skirt", "small_breasts", "sportswear", "sunny", "sword", "threesome", "tree", "usagimimi", "weapon", "wet", "white_hair", "yuri"]
+    genres_en = ["anal", "beach", "bikini", "black hair", "blonde hair", "blue hair", "boy", "brown hair", "bunny girl", "catgirl", "dick", "dress", "exposed anus", "exposed girl breasts", "flat chest", "flowers", "futanari", "girl", "glasses", "gloves", "guitar", "horsegirl", "ice cream", "kemonomimi", "kissing", "large breasts", "maid", "masturbating", "medium breasts", "mountain", "night", "pink hair", "plants", "purple hair", "pussy", "rain", "reading", "red hair", "school uniform", "shorts", "skirt", "small breasts", "sportswear", "sunny", "sword", "threesome", "tree", "usagimimi", "weapon", "wet", "white hair", "yuri"]
     genres_ru = ["анал", "пляж", "бикини", "чёрные волосы", "светлые волосы", "голубые волосы", "парень", "коричневые волосы", "девушка-кролик", "девушка-кошка", "пенис", "одежда", "обнаженный анус", "обнаженная женская грудь", "плоская грудь", "цветы", "гермафродит", "девушка", "очки", "перчатки", "гитара", "девушка-лошадь", "мороженое", "кемономими", "поцелуй", "большая грудь", "служанка", "мастурбировация", "средняя грудь", "гора", "ночь", "розовые волосы", "растения", "фиолетовые волосы", "киска", "дождь", "чтение", "красные волосы", "школьная форма", "шорты", "юбка", "маленькая грудь", "спортивная одежда", "солнечно", "меч", "тройка", "дерево", "усагимими", "оружие", "мокрое тело", "белые волосы", "юри"]
 
     def translate_tags(self, tags):
@@ -75,15 +75,15 @@ class HentaiMod(loader.Module):
     async def hentai(self, message: Message):
         raw = utils.get_args_raw(message)
         if not raw:
-            await message.edit(self.strings("no_tags"))
+            await message.edit(self.strings("no_tags"), parse_mode="md")
             return
 
         tags = hentai.parse_tags(raw)
-        await message.edit(f"{self.strings('looking_for')} `{', '.join(tags)}`...")
+        await message.edit(f"{self.strings('looking_for')} `{', '.join(tags)}`...", parse_mode="md")
 
         result = await hentai.find_image(tags)
         if not result:
-            await message.edit(f"{self.strings('not_found')} `{', '.join(tags)}`.")
+            await message.edit(f"{self.strings('not_found')} `{', '.join(tags)}`.", parse_mode="md")
             return
 
         file, found_tags = result
@@ -99,6 +99,13 @@ class HentaiMod(loader.Module):
             parse_mode="md"
         )
         await message.delete()
+
+    @loader.command()
+    async def is_premium(self, message: Message):
+        if self._client.hikka_me.premium:
+            await message.edit("👑 Вы **Premium** пользователь!", parse_mode="md")
+        else:
+            await message.edit("🕳️ Вы не **Premium** пользователь!", parse_mode="md")
 
     async def inline__hentai(self, call, args):
         if not args:
