@@ -173,7 +173,7 @@ class HentaiMod(loader.Module):
     async def loli(self, message: Message):
         await message.edit(self.format_string("looking_for") + " ...", parse_mode="html")
 
-        result = await hentai.get_pixiv_image(message)
+        result = await hentai.get_pixiv_image()
         if not result:
             await message.edit(self.format_string("not_found") + ".", parse_mode="html")
             return
