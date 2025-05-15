@@ -50,46 +50,27 @@ class hentai:
         return None
 
     @staticmethod
-    async def check_url(url: str) -> bool:
-        """Проверяет, доступна ли ссылка"""
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.head(url) as response:
-                    return response.status == 200
-        except Exception:
-            return False
-
-    @staticmethod
-    async def find_loli():
-        while True:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(
-                        "https://api.lolicon.app/setu/v2",
-                        params={"r18": 1, "uid": 16731, "excludeAI": "true", "aspectRatio": "lt1"},
-                    ) as resp:
-                        if resp.status == 200:
-                            data = await resp.json()
-                            if isinstance(data, list) and data:
-                                image_info = data["data"]
-                                url = image_info.get("urls").get("original")
-                                if not check_url(url):
-                                    continue
-                                
-                                if url.endswith(".webp"):
-                                    async with session.get(url) as img_resp:
-                                        img_bytes = await img_resp.read()
-                                        image = Image.open(BytesIO(img_bytes)).convert("RGBA")
-                                        output = BytesIO()
-                                        output.name = "image.png"
-                                        image.save(output, format="PNG", optimize=True)
-                                        output.seek(0)
-                                        return output
-                                return url
-            except Exception as e:
-                print(f"[nekosapi error] {e}")
+    async def get_pixiv_image(tags, max_retries=5):
+        async with aiohttp.ClientSession() as session:
+            for _ in range(max_retries):
+                try:
+                    async with session.get("https://api.lolicon.app/setu/v2", params={"r18": 1, "uid": 16731, "excludeAI": "true", "aspectRatio": "lt1"}) as resp:
+                        data = await resp.json()
+                        image = data.get("data", [])[0]
+                        url = image["urls"]["original"]
+                        if await hentai.check_url(session, url):
+                            return url, image.get("tags", [])
+                except Exception as e:
+                    print(f"[pixiv api error] {e}")
         return None
 
+    @staticmethod
+    async def check_url(session, url: str) -> bool:
+        try:
+            async with session.head(url) as response:
+                return response.status == 200
+        except Exception:
+            return False
 
 @loader.tds
 class HentaiMod(loader.Module):
@@ -183,17 +164,24 @@ class HentaiMod(loader.Module):
         btns = [[Button.inline(self.format_string("more"), data="hentai:" + ",".join(tags))]]
 
         await call.edit(file=file, text=caption, buttons=btns, parse_mode="html")
-
-    @loader.command()
+    
+    @loader.command(ru_doc="Случайное хентай изображение (Pixiv)", en_doc="Random hentai image (Pixiv)")
     async def loli(self, message: Message):
-        result = await hentai.find_loli()
+        await message.edit(self.format_string("looking_for") + " ...", parse_mode="html")
+
+        result = await hentai.get_pixiv_image([])
         if not result:
-            await message.edit(f"Лох, саси", parse_mode="html")
+            await message.edit(self.format_string("not_found") + ".", parse_mode="html")
             return
+
+        url, found_tags = result
+        caption = f"{self.format_string('tags')} {self.translate_tags(found_tags)}"
 
         await message.client.send_file(
             message.chat_id,
-            result,
-            reply_to=message.reply_to_msg_id
+            url,
+            caption=caption,
+            reply_to=message.reply_to_msg_id,
+            parse_mode="html"
         )
         await message.delete()
