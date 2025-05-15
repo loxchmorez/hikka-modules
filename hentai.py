@@ -50,18 +50,20 @@ class hentai:
         return None
 
     @staticmethod
-    async def get_pixiv_image(message, max_retries=5):
+    async def get_pixiv_image(max_retries=5):
         async with aiohttp.ClientSession() as session:
             for _ in range(max_retries):
                 try:
-                    async with session.get("https://api.lolicon.app/setu/v2", params={"r18": 1, "uid": 16731, "excludeAI": "true", "aspectRatio": "lt1"}) as resp:
-                        data = await resp.json()
-                        image = data.get("data", [])[0]
-                        await message.edit(image)
-                        time.sleep(2)
-                        url = image["urls"]["original"]
-                        if await hentai.check_url(session, url):
-                            return url
+                    async with session.get("https://api.lolicon.app/setu/v2?r18=1&tag=loli&num=10") as resp:
+                        data = await resp.json()["data"]
+                        for i in range(10):
+                            idata = data[i]
+                            tags = idata.get("tags")
+                            if not "loli" in tags:
+                                continue
+                            url = idata.get("urls").get("original")
+                            if await hentai.check_url(session, url):
+                                return url
                 except Exception as e:
                     print(f"[pixiv api error] {e}")
         return None
