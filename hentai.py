@@ -79,7 +79,7 @@ class HentaiMod(loader.Module):
 
     def format_string(self, string_name: str):
         string = self.strings(string_name)
-        e1, e2 = format_map[string_name]
+        e1, e2 = self.format_map[string_name]
         if self._client.hikka_me.premium:
             return string.format(e2)
         else:
