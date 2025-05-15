@@ -13,6 +13,9 @@ class Pair:
     first: str
     second: str
 
+    def __iter__(self):
+        return iter((self.first, self.second))
+
 class hentai:
     @staticmethod
     def parse_tags(raw: str):
